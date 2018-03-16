@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>请填表</title>
+    {# <link rel="stylesheet" href={% static 'css/semantic.css' %}> #}
+    {# <script src={% static 'js/jquery.min.js' %}></script> #}
+    {# <script src={% static 'js/semantic.js' %}></script> #}
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    {# <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}"> #}
+    <link rel="stylesheet" href="{% static 'css/table.css' %}">
+
+
+</head>
+
+<body>
+<div class="container">
+    <form class="main-content" method="post" action="../post" id="tableform">
+        <a href="/"><span class="home glyphicon glyphicon-home"></span></a>
+        {% csrf_token %}
+        <div class="row">
+            <h3 class="text-center">
+                <strong>{{ title }}</strong>
+            </h3>
+            <div class="alert alert-warning alert-dismissible fade in" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                请按照表单内容填写,提交后无法修改.
+            </div>
+            <div id="change" class="alert alert-info fade in hidden">
+            </div>
+        </div>
+        <input type="hidden" name="hidden_id" value="{{ table_id }}">
+        <input type="hidden" name="change_row" value="0">
+        <div class="row">
+            {% for key in value %}
+                <div class="form-group col-md-4">
+                    <label for="field">{{ key }}</label>
+                    <input type="text" class="form-control" placeholder="{{ key }}" name="{{ key }}" value=""
+                            {{ allow_null|default:'required="required"' }}>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="form-group text-right">
+            <button class="btn btn-primary" type="submit" id="submit">提交</button>
+        </div>
+    </form>
+    {% if isShow %}
+        <hr>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <caption>{{ title }}</caption>
+                <thead>
+                <tr>
+                    <th>序号</th>
+                    {% for key in value %}
+                        <th>{{ key }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for items in exists_value %}
+                    <tr>
+                        <td></td>
+                        {% for key,value in items.items %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<script>
+    $(function () {
+        $("#submit").click(function (e) {
+            var result = false;
+            var fields = "";
+
+            function validate_value(value, field) {
+                if (value.trim().length < 1) {
+                    fields += field + ",";
+                    result = true;
+                }
+            }
+            {% if allow_null == '' %}
+                {% for field in value %}
+                    validate_value($('input[name="{{ field }}"]').val(), "{{ field }}");
+                {% endfor %}
+                if (result) {
+                    alert(fields + "不能为空,空格也不行!");
+                    e.preventDefault();
+                }
+            {% endif %}
+        });
+        $('#change').click(function(){
+            var change = $('#change');
+            if(change.hasClass("hidden")){
+                change.removeClass("hidden");
+            }else{
+                change.addClass("hidden");
+            {#    将input里面的内容置为空  #}
+                var inputs = $("input[type='text']")
+                for(var i = 0;i<inputs.length;i++){
+                    inputs[i].value = '';
+                }
+                $("input[name='change_row']")[0].value = '0';
+            }
+        });
+
+        function add_number() {
+            const trs = $("tbody>tr");
+            const array_row = "{{ rows }}";
+            const row_array = array_row.split(",");
+            var count = trs.length;
+            for (var i = 0 ; i <trs.length; i++) {
+                var temp = (count+1).toString();
+                if(row_array.includes(temp)){
+                    $("tbody>tr").eq(i).addClass("success");
+                    $("tbody>tr").eq(i).click(trclick);
+                }
+                $("tbody>tr").eq(i).find("td").eq(0).html(count--);
+            }
+        }
+        function trclick(){
+            const tr = $(this);
+            const clickposition = tr.find("td").eq(0).text();
+            show_change_info(clickposition);
+            const position = Number(clickposition)+1;
+            $("input[name='change_row']")[0].value = position;
+            var children = tr.children();
+            value_to_input(children);
+        }
+        {# 点击tr行后将数据传入输入框中  #}
+        function value_to_input(children){
+            var inputs = $("input[type='text']");
+            for(var i = 0;i<inputs.length;i++){
+                var temp = children[i+1].textContent;
+                inputs[i].value = temp;
+            }
+        }
+        function show_change_info(position){
+            var change = $("#change");
+            change.html('当前正在修改第'+position+"行.");
+            change.removeClass("hidden");
+        }
+        add_number();
+    });
+
+
+</script>
+</body>
+
+</html>
