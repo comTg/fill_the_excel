@@ -31,7 +31,11 @@
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
-                请按照表单内容填写,提交后无法修改.
+                {% if allow_add is False %}
+                    当天表单不允许提交多行,允许修改已提交内容
+                    {% else %}
+                    如有多行内容,再次提交即可
+                {% endif %}
             </div>
             <div id="change" class="alert alert-info fade in hidden">
             </div>
@@ -151,7 +155,7 @@
         }
         function show_change_info(position){
             var change = $("#change");
-            change.html('当前正在修改第'+position+"行.");
+            change.html('当前正在修改第'+position+"行,点击此处可撤销修改");
             change.removeClass("hidden");
         }
         add_number();

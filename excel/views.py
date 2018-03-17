@@ -61,6 +61,8 @@ def get_excel(request, table_id=1):
         expired = True if table.expired == 1 else False
         #  是否允许填空值
         allow_null = '  ' if table.allow_null == 1 else ''  # 是否允许为空
+        #  是否允许重复填写
+        allow_add = True if table.allow_add == 1 else False
         if expired:
             return HttpResponse('<h2>该表格已过期</h2>')
         else:
@@ -72,6 +74,7 @@ def get_excel(request, table_id=1):
                 'isShow': is_show,
                 'value': fields,
                 'allow_null': allow_null,
+                'allow_add': allow_add,
                 'exists_value': exists_value,
                 'rows': rows,
             }
@@ -89,6 +92,7 @@ def form_action(request):
     template = loader.get_template('excel/result.html')
     #  获得用户传过来的表单内容
     items = request.POST.items()
+    ip = userimpl.get_ip(request)
     post_item = dict(items)
     table_id = 1
     try:  # 捕获未获取到id异常
@@ -122,6 +126,10 @@ def form_action(request):
                 user_table.rows = "{},{}".format(user_table.rows,mark_rows)
             user_table.counts += 1
             user_table.save()
+            # 保存该ip操作记录
+            mark_ip = userimpl.add_ip(ip,table.title)
+            mark_ip.counts += 1
+            mark_ip.save()
         else:
             result_info = '请按流程提交表单!'
     except Exception:

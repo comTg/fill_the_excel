@@ -14,16 +14,6 @@ SALT_TG = 'test/salt'
 MAX_AGE = 5000 * 24 * 60
 
 
-# ------------------ 获得访问者ip
-def get_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-
-
 def validate_cookie(request):  # 根据传入request判断是否含有cookie
     if 'data' in request.COOKIES:
         data = request.COOKIES['data']
@@ -131,7 +121,7 @@ def read_one_row(title, row):
         return None
 
 
-def write_to_excel(title, results,rows,change_row, allow_add):
+def write_to_excel(title, results, rows, change_row, allow_add):
     is_change = False
     try:
         file_path = get_file_path(title)  # 根据标题找到文件地址
@@ -142,12 +132,12 @@ def write_to_excel(title, results,rows,change_row, allow_add):
         sheet1 = book.get_sheet(0)
         column_count = 0
         rows_list = str(rows).split(',')
-        if allow_add or int(rows_list[0]) == 0 :  # 判断该表格是否允许相同用户重复添加
+        if allow_add or int(rows_list[0]) == 0:  # 判断该表格是否允许相同用户重复添加
             mark_row = nrows
         else:
             mark_row = int(rows_list[0])
         #  判断是否在列表中
-        dev.log(change_row=change_row,rows_list=rows_list)
+        dev.log(change_row=change_row, rows_list=rows_list)
         if str(change_row) != '0' and str(change_row) in rows_list:
             mark_row = int(change_row)
             is_change = True
@@ -155,11 +145,11 @@ def write_to_excel(title, results,rows,change_row, allow_add):
             sheet1.write(mark_row, column_count, value)
             column_count += 1
         book.save(file_path)
-        print('数据保存到excel成功!')
-        return mark_row,is_change
+        dev.log(success="数据保存到excel成功!")
+        return mark_row, is_change
     except Exception as e:
-        print(e)
-        print('保存数据到excel时发生错误-write_to_excel')
+        dev.log(error=str(e))
+        dev.log(error='保存数据到excel时发生错误')
 
 
 if __name__ == '__main__':
