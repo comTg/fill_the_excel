@@ -15,11 +15,7 @@
     {# <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}"> #}
     <link rel="stylesheet" href="{% static 'css/table.css' %}">
     <script src={%  static 'js/jquery.autogrow.js' %}></script>
-    <style>
-        textarea{
-            resize:none;
-        }
-    </style>
+
 
 </head>
 
@@ -51,8 +47,8 @@
             {% for key in value %}
                 <div class="form-group col-md-4">
                     <label for="field">{{ key }}</label>
-                    <textarea type="text" class="form-control" placeholder="{{ key }}" name="{{ key }}" value=""
-                            {{ allow_null|default:'required="required"' }}></textarea>
+                    <input type="text" class="form-control" placeholder="{{ key }}" name="{{ key }}" value=""
+                            {{ allow_null|default:'required="required"' }}>
                 </div>
             {% endfor %}
         </div>
@@ -104,7 +100,7 @@
             }
             {% if allow_null == '' %}
                 {% for field in value %}
-                    validate_value($('textarea[name="{{ field }}"]').val(), "{{ field }}");
+                    validate_value($('input[name="{{ field }}"]').val(), "{{ field }}");
                 {% endfor %}
                 if (result) {
                     alert(fields + "不能为空,空格也不行!");
@@ -119,7 +115,7 @@
             }else{
                 change.addClass("hidden");
             {#    将input里面的内容置为空  #}
-                var inputs = $("textarea[type='text']")
+                var inputs = $("input[type='text']")
                 for(var i = 0;i<inputs.length;i++){
                     inputs[i].value = '';
                 }
@@ -152,7 +148,7 @@
         }
         {# 点击tr行后将数据传入输入框中  #}
         function value_to_input(children){
-            var inputs = $("textarea[type='text']");
+            var inputs = $("input[type='text']");
             for(var i = 0;i<inputs.length;i++){
                 var temp = children[i+1].textContent;
                 inputs[i].value = temp;
