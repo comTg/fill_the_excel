@@ -12,6 +12,8 @@ from . import dev
 SALT = b'ri8dodgnexBkEcpuRc1KvXTCNzsFHYuv-BRhfi0BPo8='
 SALT_TG = 'test/salt'
 MAX_AGE = 5000 * 24 * 60
+ROW_WIDTH = 6000
+
 
 
 def validate_cookie(request):  # 根据传入request判断是否含有cookie
@@ -52,9 +54,31 @@ def decrypt_data(data):
 
 # -----------------
 
+def get_style(is_title=False):
+    style = xlwt.XFStyle()
+    font = xlwt.Font()
+    font.name = "微软雅黑"
+    font.height = 240
+    if is_title:
+        font.height = 350
+        dev.log(font=font.height)
+    style.font = font
+    # style.alignment.wrap = 1
+    return style
+
+
 def get_file_path(title):
     file_path = os.path.join(BASE_DIR, '{title}.{suffix}'.format(title=title, suffix='xls'))
     return file_path;
+
+def overwrited_title(sheet,title,fields):
+    style = get_style(True)
+    sheet.write(0,0,title,style)
+    column_count = 0
+    for field in fields:
+        sheet.col(column_count).width = ROW_WIDTH
+        sheet.write(1, column_count, field, style)
+        column_count += 1
 
 
 def new_excel(title, fields):
@@ -65,15 +89,11 @@ def new_excel(title, fields):
             return
         book = xlwt.Workbook()
         sheet1 = book.add_sheet('Sheet1')
-        sheet1.write(0, 0, title)
-        column_count = 0
-        for field in fields:
-            sheet1.write(1, column_count, field)
-            column_count += 1
+        overwrited_title(sheet1,title,fields)
         book.save(file_path)
-        print('新建-{}-成功'.format(file_path))
-    except Exception:
-        print('新建-{}-失败'.format(file_path))
+        dev.log(succ='新建{}成功!'.format(file_path))
+    except Exception as e:
+        dev.log(err=str(e),tips="新建{}失败".format(file_path))
 
 
 def open_excel(title):
@@ -121,15 +141,17 @@ def read_one_row(title, row):
         return None
 
 
-def write_to_excel(title, results, rows, change_row, allow_add):
+def write_to_excel(title, fields,results, rows, change_row, allow_add):
     is_change = False
     try:
         file_path = get_file_path(title)  # 根据标题找到文件地址
+        style = get_style()
         data = open_excel(title)  # 打开excel文件
         table = data.sheet_by_name('Sheet1')  # 打开表
         nrows = table.nrows  # 获得行数
         book = copy(data)  # 将xlrd打开的excel文件转换成xlwt可读写的文件
         sheet1 = book.get_sheet(0)
+        overwrited_title(sheet1,title,fields)
         column_count = 0
         rows_list = str(rows).split(',')
         if allow_add or int(rows_list[0]) == 0:  # 判断该表格是否允许相同用户重复添加
@@ -142,7 +164,7 @@ def write_to_excel(title, results, rows, change_row, allow_add):
             mark_row = int(change_row)
             is_change = True
         for value in results:
-            sheet1.write(mark_row, column_count, value)
+            sheet1.write(mark_row, column_count, value,style)
             column_count += 1
         book.save(file_path)
         dev.log(success="数据保存到excel成功!")

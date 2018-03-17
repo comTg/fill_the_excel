@@ -80,7 +80,7 @@ def get_excel(request, table_id=1):
             }
             response = HttpResponse(template.render(context, request))
             if is_first:
-                ip = tools.get_ip(request)
+                ip = userimpl.get_ip(request)
                 response, token = tools.add_cookie(response, ip)
                 userimpl.add_user(token)
             return response
@@ -115,7 +115,7 @@ def form_action(request):
             get_list = list()  # 使用列表传递字段和对应的表单值
             for i in range(len(fields)):
                 get_list.append(post_item[fields[i]])
-            mark_rows,is_change = tools.write_to_excel(table.title, get_list, user_table.rows, change_row,allow_add)
+            mark_rows,is_change = tools.write_to_excel(table.title, fields,get_list, user_table.rows, change_row,allow_add)
             dev.log(mark_rows=mark_rows)
             result_info = '提交成功'
             user_table.pub_time = timezone.now()
