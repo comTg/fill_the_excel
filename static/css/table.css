@@ -7,12 +7,44 @@ html, body {
 }
 
 .main-content {
-        position:relative;
+    position:relative;
     box-shadow: 0px 1px 2px 0 rgba(34, 36, 38, 0.15);
     margin: 1rem 0em;
     padding: 1em 1em;
     border-radius: 0.28571429rem;
     border: 1px solid rgba(34, 36, 38, 0.15);
+}
+a {
+    text-decoration: none;
+    margin-left: 2px;
+    margin-right: 2px;
+    color: #333;
+}
+
+.container {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+.nav-ul {
+    padding: 10px 20px;
+}
+
+.nav-ul a {
+    display: inline-block;
+    float: left;
+    padding: 10px 10px;
+    color: #444;
+}
+
+.nav-ul a:hover {
+    color: #4285f4;
+    text-decoration: none;
+}
+
+.nav-ul a span {
+    padding: 0px 5px;
 }
 .home{
     position: absolute;
@@ -27,6 +59,9 @@ html, body {
 .main-content.fork{
     text-align:center;
 }
+.hiov{
+    overflow:hidden;
+}
 ul{
    margin: 1rem 0em;
     padding: 1em 1em;
@@ -37,4 +72,22 @@ ul{
 }
 .green-tr{
     background-color: #00B2B2!important;
+}
+textarea{
+            resize:none;
+        }
+
+@media (max-width: 768px) {
+.ul-horizontal li {
+float: left;
+width: 160px;
+overflow: hidden;
+clear: left;
+text-align: right;
+text-overflow: ellipsis;
+white-space: nowrap;
+  }
+.ul-horizontal li {
+margin-left: 10px;
+  }
 }

@@ -1,20 +1,19 @@
 import os
-from . import dev
+import json
 from copy import deepcopy
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.template import loader
 from django.utils import timezone
 from django.http import StreamingHttpResponse
-
-from datetime import datetime
-from urllib.parse import unquote
-from random import randint
-from collections import OrderedDict
+from django.views.generic.base import View
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 
 from . import models
 from . import tools
 from . import userimpl
+from . import dev
 from .entity import TableInfo
 from WordTo_Excel.settings import BASE_DIR
 
@@ -115,7 +114,8 @@ def form_action(request):
             get_list = list()  # 使用列表传递字段和对应的表单值
             for i in range(len(fields)):
                 get_list.append(post_item[fields[i]])
-            mark_rows,is_change = tools.write_to_excel(table.title, fields,get_list, user_table.rows, change_row,allow_add)
+            mark_rows, is_change = tools.write_to_excel(table.title, fields, get_list, user_table.rows, change_row,
+                                                        allow_add)
             dev.log(mark_rows=mark_rows)
             result_info = '提交成功'
             user_table.pub_time = timezone.now()
@@ -123,11 +123,11 @@ def form_action(request):
             if str(user_table.rows) == '0' and not is_change:
                 user_table.rows = mark_rows
             elif not is_change:
-                user_table.rows = "{},{}".format(user_table.rows,mark_rows)
+                user_table.rows = "{},{}".format(user_table.rows, mark_rows)
             user_table.counts += 1
             user_table.save()
             # 保存该ip操作记录
-            mark_ip = userimpl.add_ip(ip,table.title)
+            mark_ip = userimpl.add_ip(ip, table.title)
             mark_ip.counts += 1
             mark_ip.save()
         else:
@@ -164,11 +164,59 @@ def download_excel(request, file):
                     yield c
                 else:
                     break
+
     response = StreamingHttpResponse(file_iterator(file_path))
     response['Content-Type'] = 'application/octet-stream'
     response['Content-Disposition'] = 'attachment;filename={0}'.format(file)
     return response
 
 
-def article_page(request, article_id):
-    pass
+class LoginView(View):
+    def get(self, request):
+        return render(request, "excel/login.html", {})
+
+    def post(self, request):
+        user = userimpl.validate_login(request)
+        if user is not None:
+            return redirect('/modify')
+        else:
+            return render(request, "excel/login.html", {"result": "用户名或密码错误"})
+
+
+@login_required
+def modify(request):
+    return render(request, 'excel/modify_excel.html', {})
+
+@login_required
+def get_title(request):
+    tables = models.Table.objects.all()
+    titles = list()
+    for table in tables:
+        titles.append(table.title)
+    result = json.dumps(titles,ensure_ascii=False)
+    dev.log(get_title=result)
+    return HttpResponse(result)
+
+@login_required
+def get_content(request):
+    title = request.GET.get('title', '')
+    exists_value = tools.read_from_excel(title)
+    exists_value = json.dumps(exists_value,ensure_ascii=False)
+    dev.log(value=exists_value)
+    return HttpResponse(exists_value)
+
+@csrf_exempt
+@login_required()
+def change_table(request):
+    if request.method == "POST":
+        data = request.POST.get("data","")
+        title = request.POST.get("title","")
+        data = json.loads(data)  # dict
+        fields = userimpl.get_fields(title)
+        dev.log(data=data,title=title,type=type(data))
+        tools.write_all_rows(title,fields,data)
+        return HttpResponse("ok");
+    else:
+        return HttpResponse("请使用post方式请求")
+
+

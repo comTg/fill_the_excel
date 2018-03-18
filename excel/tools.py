@@ -140,18 +140,21 @@ def read_one_row(title, row):
     else:
         return None
 
+def init_sheet(title,fields):
+    file_path = get_file_path(title)
+    style = get_style()
+    data = open_excel(title)  # 打开excel文件
+    table = data.sheet_by_name('Sheet1')  # 打开表
+    nrows = table.nrows  #  获得行数
+    book = copy(data)
+    sheet1 = book.get_sheet(0)
+    overwrited_title(sheet1,title,fields)
+    return sheet1,book,file_path,nrows,style
 
 def write_to_excel(title, fields,results, rows, change_row, allow_add):
     is_change = False
     try:
-        file_path = get_file_path(title)  # 根据标题找到文件地址
-        style = get_style()
-        data = open_excel(title)  # 打开excel文件
-        table = data.sheet_by_name('Sheet1')  # 打开表
-        nrows = table.nrows  # 获得行数
-        book = copy(data)  # 将xlrd打开的excel文件转换成xlwt可读写的文件
-        sheet1 = book.get_sheet(0)
-        overwrited_title(sheet1,title,fields)
+        sheet1,book,file_path,nrows,style = init_sheet(title,fields)
         column_count = 0
         rows_list = str(rows).split(',')
         if allow_add or int(rows_list[0]) == 0:  # 判断该表格是否允许相同用户重复添加
@@ -170,9 +173,26 @@ def write_to_excel(title, fields,results, rows, change_row, allow_add):
         dev.log(success="数据保存到excel成功!")
         return mark_row, is_change
     except Exception as e:
-        dev.log(error=str(e))
-        dev.log(error='保存数据到excel时发生错误')
+        dev.log(error='保存数据到excel时发生错误',err=str(e))
 
+def write_all_rows(title,fields,results):
+    try:
+        sheet1,book,file_path,nrows,style = init_sheet(title,fields)
+        style = get_style()
+        row_count = 2
+        row_keys = list(results.keys())
+        row_keys.reverse()
+        for one_row in row_keys:
+            column_count = 0
+            row_value = results[one_row]
+            for td in row_value:
+                sheet1.write(row_count,column_count,row_value[td],style)
+                column_count += 1
+            row_count += 1
+        book.save(file_path)
+        dev.log(succ="数据更新到excel成功")
+    except Exception as e:
+        dev.log(err=str(e))
 
 if __name__ == '__main__':
     # title = '测试标题-test'

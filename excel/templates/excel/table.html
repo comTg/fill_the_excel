@@ -7,22 +7,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>请填表</title>
-    {# <link rel="stylesheet" href={% static 'css/semantic.css' %}> #}
-    {# <script src={% static 'js/jquery.min.js' %}></script> #}
-    {# <script src={% static 'js/semantic.js' %}></script> #}
     <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
-    {# <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}"> #}
     <link rel="stylesheet" href="{% static 'css/table.css' %}">
-    <script src={%  static 'js/jquery.autogrow.js' %}></script>
-    <style>
-        textarea{
-            resize:none;
-        }
-    </style>
-
 </head>
-
 <body>
 <div class="container">
     <form class="main-content" method="post" action="../post" id="tableform">
@@ -50,7 +38,7 @@
         <div class="row">
             {% for key in value %}
                 <div class="form-group col-md-4">
-                    <label for="field">{{ key }}</label>
+                    <label for="{{ field }}">{{ key }}</label>
                     <textarea type="text" class="form-control" placeholder="{{ key }}" name="{{ key }}" value=""
                             {{ allow_null|default:'required="required"' }}></textarea>
                 </div>
@@ -87,10 +75,10 @@
         </div>
     {% endif %}
 </div>
-
+<script src={%  static 'js/jquery.autogrow.js' %}></script>
 <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
 <script>
+$("textarea").autogrow();
     $(function () {
         $("#submit").click(function (e) {
             var result = false;
@@ -124,8 +112,14 @@
                     inputs[i].value = '';
                 }
                 $("input[name='change_row']")[0].value = '0';
+                remove_tr_danger();
             }
         });
+
+        <!-- 移除点击过的tr 的danger类 -->
+        function remove_tr_danger(){
+                $("tr.danger").removeClass("danger");
+        }
 
         function add_number() {
             const trs = $("tbody>tr");
@@ -143,6 +137,8 @@
         }
         function trclick(){
             const tr = $(this);
+            remove_tr_danger();
+            tr.addClass("danger");
             const clickposition = tr.find("td").eq(0).text();
             show_change_info(clickposition);
             const position = Number(clickposition)+1;
@@ -158,6 +154,7 @@
                 inputs[i].value = temp;
             }
         }
+
         function show_change_info(position){
             var change = $("#change");
             change.html('当前正在修改第'+position+"行,点击此处可撤销修改");
@@ -165,8 +162,6 @@
         }
         add_number();
     });
-
-
 </script>
 </body>
 

@@ -1,5 +1,8 @@
 from . import models
+from . import dev
 from django.utils import timezone
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate,login
 
 
 # 跟用户相关操作
@@ -68,6 +71,22 @@ def get_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+#  获得数据库中的用户,可以修改或删除表单内容
+
+def validate_login(request):
+    name = request.POST.get("name", "")
+    pwd = request.POST.get("pwd", "")
+    user = authenticate(username=name,password=pwd)
+    if user is not None:
+        if user.is_active:
+            login(request,user)
+            dev.log(succ="{}登录成功".format(name))
+        else:
+            dev.log(error="{}登录成功,但是账户未激活".format(name))
+            return None
+    return user
+
+
 # 跟表格相关操作
 
 def get_table(table_id):
@@ -75,4 +94,12 @@ def get_table(table_id):
     if query_table:
         table = query_table.first()
         return table
+    return None
+
+def get_fields(title):
+    query_table = models.Table.objects.filter(title=title)
+    if query_table:
+        table = query_table.first()
+        fields = table.field.split(',')
+        return fields
     return None

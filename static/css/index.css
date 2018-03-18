@@ -5,39 +5,9 @@ body {
     color: #333;
 }
 
-a {
-    text-decoration: none;
-    margin-left: 2px;
-    margin-right: 2px;
-    color: #333;
-}
 
-.container {
-    padding-right: 15px;
-    padding-left: 15px;
-    margin-right: auto;
-    margin-left: auto;
-}
 
-.nav-ul {
-    padding: 10px 20px;
-}
 
-.nav-ul a {
-    display: inline-block;
-    float: left;
-    padding: 10px 10px;
-    color: #444;
-}
-
-.nav-ul a:hover {
-    color: #4285f4;
-    text-decoration: none;
-}
-
-.nav-ul a span {
-    padding: 0px 5px;
-}
 
 .content {
     text-align: center;
